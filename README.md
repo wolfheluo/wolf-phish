@@ -1,0 +1,431 @@
+# 🎯 Cretech-PHISH 
+
+**全功能社交工程安全測試平台**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PHP Version](https://img.shields.io/badge/PHP-%3E%3D8.1-blue.svg)](https://php.net/)
+[![MySQL Version](https://img.shields.io/badge/MySQL-%3E%3D8.0-orange.svg)](https://mysql.com/)
+
+## 📋 系統概述
+
+Cretech-PHISH 是一個專業級的社交工程安全測試平台，用於幫助組織評估員工的安全意識並提供針對性的安全培訓。該系統提供完整的釣魚郵件測試、追蹤分析和安全教育功能。
+
+### ✨ 核心功能
+
+#### 🎯 釣魚測試管理
+- **項目管理**：創建和管理多個測試項目
+- **目標管理**：支援批量導入目標用戶（CSV格式）
+- **排程設定**：設定測試開始/結束時間和頻率
+- **模板管理**：豐富的郵件模板庫，支援自定義
+
+#### 📧 郵件系統
+- **多樣化模板**：Office365、安全警告、問卷調查等預設模板
+- **批量發送**：支援大量目標的批次發送
+- **SMTP整合**：支援外部SMTP服務器和本地Postfix
+- **變數替換**：動態內容個性化（姓名、郵件等）
+
+#### 📊 追蹤與監控
+- **像素追蹤**：郵件開啟監控
+- **URL追蹤**：連結點擊追蹤和重定向
+- **檔案追蹤**：附件下載監控
+- **表單追蹤**：用戶輸入數據捕獲（安全處理）
+- **行為分析**：完整的用戶行為軌跡
+
+#### 🎭 釣魚頁面
+- **多種類型**：登錄頁面、下載頁面、問卷頁面
+- **高仿真度**：逼真的Office365、企業內網頁面
+- **響應式設計**：支援桌面和移動設備
+- **安全教育**：測試後立即顯示安全提醒
+
+#### 📈 分析與報告
+- **實時統計**：開啟率、點擊率、下載率等關鍵指標
+- **視覺化圖表**：時間線分析、設備分佈、地理位置
+- **風險評分**：基於行為數據的風險等級評估
+- **詳細報告**：支援HTML/PDF格式的詳細分析報告
+
+#### 🛡️ 安全與合規
+- **數據保護**：敏感信息加密存儲
+- **訪問控制**：基於角色的權限管理
+- **審計日誌**：完整的操作記錄
+- **隱私保護**：符合GDPR等法規要求
+
+## 🏗️ 技術架構
+
+### 後端技術棧
+- **PHP 8.1+**：現代PHP特性，類型聲明，性能優化
+- **MySQL 8.0**：關係型數據庫，完整ACID支援
+- **自定義MVC框架**：輕量級，高效能的架構設計
+- **PDO**：安全的數據庫抽象層，防SQL注入
+
+### 前端技術棧
+- **Bootstrap 5**：響應式UI框架
+- **Vue.js 3**：現代前端框架，組件化開發
+- **Chart.js**：數據視覺化圖表庫
+- **jQuery**：DOM操作和AJAX請求
+
+### 基礎設施
+- **Nginx**：高性能Web服務器
+- **PHP-FPM**：FastCGI進程管理器
+- **Redis**：快取和會話存儲
+- **Postfix**：郵件傳輸代理
+- **Supervisor**：進程監控和管理
+- **Docker**：容器化部署解決方案
+
+## 📁 項目結構
+
+```
+cretech-phish/
+├── config/                 # 配置文件
+│   ├── config.php          # 應用配置
+│   └── Database.php        # 數據庫連接類
+├── database/               # 數據庫相關
+│   ├── schema.sql          # 數據庫結構
+│   ├── sample_data.sql     # 示例數據
+│   └── init.php            # 初始化腳本
+├── src/                    # 源代碼
+│   ├── controllers/        # 控制器
+│   │   ├── AuthController.php
+│   │   ├── DashboardController.php
+│   │   ├── TrackingController.php
+│   │   ├── PhishController.php
+│   │   └── AnalyticsController.php
+│   ├── models/             # 數據模型
+│   │   ├── BaseModel.php
+│   │   ├── Project.php
+│   │   ├── EmailTemplate.php
+│   │   └── UserModel.php
+│   ├── utils/              # 工具類
+│   │   ├── Utils.php
+│   │   ├── Session.php
+│   │   └── EmailSender.php
+│   └── workers/            # 後台工作進程
+├── public/                 # 公開目錄
+│   ├── index.php           # 入口文件
+│   ├── css/               # 樣式文件
+│   ├── js/                # JavaScript文件
+│   └── img/               # 圖片資源
+├── templates/              # 視圖模板
+│   ├── layout/            # 佈局模板
+│   ├── auth/              # 認證頁面
+│   ├── dashboard/         # 儀表板頁面
+│   └── phish/             # 釣魚頁面
+├── docker/                # Docker配置
+│   ├── docker-compose.yml
+│   ├── Dockerfile
+│   └── nginx/
+└── logs/                  # 日誌文件
+```
+
+## 🚀 快速安裝
+
+### 系統需求
+- **作業系統**：Ubuntu 20.04+ / Debian 11+
+- **PHP**：8.1 或更高版本
+- **MySQL**：8.0 或更高版本
+- **Nginx**：1.18+
+- **記憶體**：最少 2GB RAM
+- **磁碟空間**：10GB 可用空間
+
+### 自動化安裝
+
+1. **下載項目文件**
+```bash
+git clone https://github.com/your-org/cretech-phish.git
+cd cretech-phish
+```
+
+2. **執行一鍵安裝腳本**
+```bash
+sudo chmod +x install.sh
+sudo ./install.sh
+```
+
+3. **初始化數據庫**
+```bash
+cd /var/www/cretech-phish
+php database/init.php
+```
+
+4. **訪問系統**
+- 打開瀏覽器，訪問 `http://your-server-ip`
+- 使用預設管理員帳戶登錄：
+  - 用戶名：`admin`
+  - 密碼：`admin123`
+
+### Docker 部署
+
+1. **啟動服務**
+```bash
+docker-compose up -d
+```
+
+2. **初始化數據庫**
+```bash
+docker-compose exec app php database/init.php
+```
+
+## ⚙️ 配置說明
+
+### 基本配置
+編輯 `config/config.php` 文件：
+
+```php
+// 數據庫配置
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'cretech_phish');
+define('DB_USER', 'your_db_user');
+define('DB_PASS', 'your_db_password');
+
+// 應用配置
+define('BASE_URL', 'https://your-domain.com');
+define('APP_NAME', 'Cretech-PHISH');
+define('APP_DEBUG', false);
+
+// 郵件配置
+define('SMTP_HOST', 'your-smtp-server.com');
+define('SMTP_PORT', 587);
+define('SMTP_USER', 'your-email@domain.com');
+define('SMTP_PASS', 'your-email-password');
+```
+
+### Nginx 配置
+系統會自動配置Nginx，配置文件位於 `/etc/nginx/sites-available/cretech-phish`
+
+### 安全設置
+
+1. **更改預設密碼**
+```bash
+# 登錄系統後立即更改管理員密碼
+```
+
+2. **設置防火牆**
+```bash
+sudo ufw allow 22    # SSH
+sudo ufw allow 80    # HTTP
+sudo ufw allow 443   # HTTPS
+sudo ufw enable
+```
+
+3. **SSL證書配置**
+```bash
+# 使用Let's Encrypt獲取免費SSL證書
+sudo certbot --nginx -d your-domain.com
+```
+
+## 📖 使用指南
+
+### 創建釣魚測試項目
+
+1. **登錄系統**並進入儀表板
+2. **點擊「新增項目」**，填寫基本信息：
+   - 項目名稱和描述
+   - 測試時間範圍
+   - 目標群組
+
+3. **選擇郵件模板**：
+   - 使用預設模板或創建自定義模板
+   - 配置發送者信息
+   - 設置追蹤參數
+
+4. **導入目標清單**：
+   - 支援CSV文件批量導入
+   - 格式：`name,email,department`
+   - 系統會自動驗證郵件格式
+
+5. **啟動測試**：
+   - 檢查配置無誤後啟動
+   - 系統會按照設定時間自動發送
+
+### 監控測試進度
+
+1. **實時統計**：
+   - 郵件發送狀態
+   - 開啟率、點擊率統計
+   - 設備和瀏覽器分佈
+
+2. **詳細追蹤**：
+   - 查看每個用戶的具體行為
+   - 時間線分析
+   - 風險評級
+
+3. **生成報告**：
+   - 選擇報告類型和格式
+   - 下載詳細分析報告
+   - 分享給相關人員
+
+### 安全教育
+
+系統會在用戶點擊釣魚連結後：
+1. **顯示安全警告頁面**
+2. **提供安全知識教育**
+3. **記錄教育活動參與情況**
+
+## 🎨 用戶界面設計
+
+### 主要頁面配置
+
+#### 系統佈局
+- **左側邊欄**：儀錶板 / 範本管理 / 開始演練 / 演練狀態 / 結果查詢
+- **頂部導航**：左上角LOGO，右上角帳戶管理
+
+#### 功能頁面
+
+**儀錶板**
+- 總專案數統計
+- 進行中專案數量
+- 郵件模板數量
+- 目標郵件總數
+- 近期專案活動列表
+
+**範本管理**
+- 新增釣魚郵件範本
+- 新增一頁式網站範本
+- 關鍵字搜尋功能
+- 釣魚郵件範本列表（可預覽和測試發送）
+- 一頁式網站範本列表（可預覽）
+
+**開始演練**
+- 專案代號和名稱設定
+- 受測人帳號密碼配置
+- CSV格式Email列表上傳
+- 電子郵件樣板選擇
+- 發件人信息配置（姓名、Email、主旨）
+- 追蹤URL配置（像素、壓縮包、釣魚網站）
+- 專案時間設定（開始/結束日期）
+- 每日發送時間範圍（預設09:00-17:00）
+
+**演練狀態**
+- 專案列表展示
+- 基本信息（代號、名稱、日期、目標數量）
+- 使用模板顯示
+- 專案狀態追蹤
+- 操作功能按鈕
+
+**結果查詢**
+- 專案選擇器
+- 統計圖表展示
+- 報表產製和下載功能
+
+## 🔒 安全注意事項
+
+### 重要警告
+⚠️ **本系統僅用於合法的安全測試目的**
+- 使用前必須獲得組織正式授權
+- 不得用於惡意攻擊或非法活動
+- 遵守當地法律法規和公司政策
+
+### 數據保護
+- 所有敏感數據均加密存儲
+- 密碼使用強雜湊算法
+- 系統日誌不記錄敏感信息
+- 定期清理過期數據
+
+### 訪問控制
+- 基於角色的權限管理
+- 強制使用複雜密碼
+- 支援雙因素驗證（可選）
+- 定期審計用戶權限
+
+## 🛠️ 故障排除
+
+### 常見問題
+
+**Q: 郵件發送失敗**
+A: 檢查SMTP配置和防火牆設置，確保25/587端口開放
+
+**Q: 追蹤像素不工作**
+A: 檢查Nginx配置，確保 `/track/` 路由正常
+
+**Q: 數據庫連接錯誤**
+A: 檢查數據庫憑據和權限設置
+
+**Q: 頁面載入緩慢**
+A: 檢查MySQL查詢性能，考慮添加索引
+
+### 日誌檢查
+```bash
+# 檢查應用日誌
+tail -f /var/www/cretech-phish/logs/app.log
+
+# 檢查Nginx日誌
+tail -f /var/log/nginx/cretech-phish.error.log
+
+# 檢查PHP-FPM日誌
+tail -f /var/log/php8.1-fpm.log
+
+# 檢查MySQL日誌
+sudo tail -f /var/log/mysql/error.log
+```
+
+## 📊 API 文檔
+
+系統提供RESTful API用於整合：
+
+### 認證相關
+- `POST /api/auth/login` - 用戶登錄
+- `GET /api/auth/check` - 檢查登錄狀態
+- `POST /api/auth/logout` - 用戶登出
+
+### 項目管理
+- `GET /api/projects` - 獲取項目列表
+- `POST /api/projects` - 創建新項目
+- `PUT /api/projects/{id}` - 更新項目
+- `DELETE /api/projects/{id}` - 刪除項目
+
+### 統計數據
+- `GET /api/analytics/{project_id}` - 獲取項目統計
+- `GET /api/reports/{project_id}` - 生成報告
+
+詳細API文檔請參考 `/docs/api.html`
+
+## 🤝 貢獻指南
+
+歡迎貢獻代碼！請遵循以下步驟：
+
+1. Fork 項目
+2. 創建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 創建 Pull Request
+
+### 代碼規範
+- 遵循 PSR-12 PHP 代碼規範
+- 添加適當的註釋和文檔
+- 包含單元測試
+- 更新相關文檔
+
+## 📄 許可證
+
+本項目採用 MIT 許可證 - 詳見 [LICENSE](LICENSE) 文件
+
+## 👥 開發團隊
+
+- **主要開發者**：Cretech Security Team
+- **維護者**：[Your Name](mailto:your-email@company.com)
+
+## 📞 支援與聯繫
+
+- **技術支援**：support@cretech-security.com
+- **問題報告**：[GitHub Issues](https://github.com/your-org/cretech-phish/issues)
+- **功能請求**：[GitHub Discussions](https://github.com/your-org/cretech-phish/discussions)
+
+## 🔄 更新日誌
+
+### v1.0.0 (2024-01-15)
+- ✨ 初始版本發布
+- 🎯 完整的釣魚測試功能
+- 📊 實時統計和分析
+- 🛡️ 安全教育模組
+- 🐳 Docker 支援
+- 📱 響應式設計
+
+### 未來規劃
+- [ ] 多語言支援
+- [ ] 更多釣魚模板
+- [ ] AI 驅動的風險分析
+- [ ] 移動端 APP
+- [ ] 整合第三方服務
+
+---
+
+**⚠️ 免責聲明**：本工具僅供合法的安全測試使用。使用者需承擔使用本工具的所有法律責任。開發團隊不對任何誤用或損害承擔責任。

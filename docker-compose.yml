@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cretech-phish-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/sites/:/etc/nginx/sites-available
+      - ./docker/nginx/sites/:/etc/nginx/sites-enabled
+      - ./uploads:/var/www/html/uploads
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - database
+    environment:
+      - APP_ENV=production
+      - DB_HOST=database
+      - DB_NAME=cretech_phish
+      - DB_USER=phish_user
+      - DB_PASSWORD=phish_secure_password_2023
+    networks:
+      - phish-network
+
+  database:
+    image: mysql:8.0
+    container_name: cretech-phish-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: cretech_phish
+      MYSQL_USER: phish_user
+      MYSQL_PASSWORD: phish_secure_password_2023
+      MYSQL_ROOT_PASSWORD: root_secure_password_2023
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    ports:
+      - "3306:3306"
+    networks:
+      - phish-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: cretech-phish-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - phish-network
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: cretech-phish-mail
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - phish-network
+
+  supervisor:
+    build:
+      context: .
+      dockerfile: Dockerfile.supervisor
+    container_name: cretech-phish-supervisor
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - database
+      - redis
+    environment:
+      - APP_ENV=production
+      - DB_HOST=database
+      - DB_NAME=cretech_phish
+      - DB_USER=phish_user
+      - DB_PASSWORD=phish_secure_password_2023
+    networks:
+      - phish-network
+
+volumes:
+  db_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  phish-network:
+    driver: bridge

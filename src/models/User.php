@@ -4,14 +4,14 @@ require_once 'BaseModel.php';
 
 class User extends BaseModel {
     protected $table = 'users';
-    protected $fillable = ['username', 'password', 'email', 'role', 'full_name', 'department', 'is_active'];
-    protected $hidden = ['password'];
+    protected $fillable = ['username', 'password_hash', 'email', 'role', 'full_name', 'department', 'status'];
+    protected $hidden = ['password_hash'];
     
     /**
      * 根據用戶名查找用戶
      */
     public function findByUsername($username) {
-        $sql = "SELECT * FROM users WHERE username = ? AND is_active = 1";
+        $sql = "SELECT * FROM users WHERE username = ? AND status = 'active'";
         return Database::fetch($sql, [$username]);
     }
     
@@ -19,7 +19,7 @@ class User extends BaseModel {
      * 根據郵件查找用戶
      */
     public function findByEmail($email) {
-        $sql = "SELECT * FROM users WHERE email = ? AND is_active = 1";
+        $sql = "SELECT * FROM users WHERE email = ? AND status = 'active'";
         return Database::fetch($sql, [$email]);
     }
     
@@ -28,7 +28,8 @@ class User extends BaseModel {
      */
     public function createUser($data) {
         if (isset($data['password'])) {
-            $data['password'] = Utils::hashPassword($data['password']);
+            $data['password_hash'] = Utils::hashPassword($data['password']);
+            unset($data['password']); // 移除原始密碼
         }
         return $this->create($data);
     }
@@ -38,7 +39,7 @@ class User extends BaseModel {
      */
     public function updatePassword($userId, $newPassword) {
         $hashedPassword = Utils::hashPassword($newPassword);
-        return $this->update($userId, ['password' => $hashedPassword]);
+        return $this->update($userId, ['password_hash' => $hashedPassword]);
     }
     
     /**
@@ -51,7 +52,7 @@ class User extends BaseModel {
             return false;
         }
         
-        if (!Utils::verifyPassword($password, $user['password'])) {
+        if (!Utils::verifyPassword($password, $user['password_hash'])) {
             return false;
         }
         
@@ -97,28 +98,28 @@ class User extends BaseModel {
      * 獲取所有管理員
      */
     public function getAdmins() {
-        return $this->all(['role' => 'admin', 'is_active' => 1]);
+        return $this->all(['role' => 'admin', 'status' => 'active']);
     }
     
     /**
      * 獲取所有普通用戶
      */
     public function getUsers() {
-        return $this->all(['role' => 'user', 'is_active' => 1]);
+        return $this->all(['role' => 'user', 'status' => 'active']);
     }
     
     /**
      * 停用用戶
      */
     public function deactivate($userId) {
-        return $this->update($userId, ['is_active' => 0]);
+        return $this->update($userId, ['status' => 'inactive']);
     }
     
     /**
      * 啟用用戶
      */
     public function activate($userId) {
-        return $this->update($userId, ['is_active' => 1]);
+        return $this->update($userId, ['status' => 'active']);
     }
     
     /**
@@ -128,16 +129,16 @@ class User extends BaseModel {
         $stats = [];
         
         // 總用戶數
-        $stats['total'] = $this->count(['is_active' => 1]);
+        $stats['total'] = $this->count(['status' => 'active']);
         
         // 管理員數量
-        $stats['admins'] = $this->count(['role' => 'admin', 'is_active' => 1]);
+        $stats['admins'] = $this->count(['role' => 'admin', 'status' => 'active']);
         
         // 普通用戶數量
-        $stats['users'] = $this->count(['role' => 'user', 'is_active' => 1]);
+        $stats['users'] = $this->count(['role' => 'user', 'status' => 'active']);
         
         // 最近註冊用戶（最近30天）
-        $sql = "SELECT COUNT(*) as count FROM users WHERE is_active = 1 AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        $sql = "SELECT COUNT(*) as count FROM users WHERE status = 'active' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
         $result = Database::fetch($sql);
         $stats['recent'] = $result['count'];
         

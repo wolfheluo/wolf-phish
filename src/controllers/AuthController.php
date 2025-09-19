@@ -95,7 +95,7 @@ class AuthController extends BaseController {
                 'full_name' => $data['full_name'],
                 'department' => $data['department'] ?? '',
                 'role' => 'user',
-                'is_active' => 1
+                'status' => 'active'
             ]);
             
             // 驗證郵件格式

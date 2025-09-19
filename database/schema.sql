@@ -8,12 +8,12 @@ USE cretech_phish;
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
     full_name VARCHAR(100),
     department VARCHAR(100),
-    is_active BOOLEAN DEFAULT TRUE,
+    status ENUM('active', 'inactive', 'blocked') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -176,5 +176,5 @@ CREATE TABLE sessions (
 
 
 -- 插入預設管理員帳戶
-INSERT INTO users (username, password, email, role, full_name) VALUES
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@cretech.com', 'admin', 'System Administrator');
+INSERT INTO users (username, password_hash, email, role, full_name, status) VALUES
+('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@cretech.com', 'admin', 'System Administrator', 'active');

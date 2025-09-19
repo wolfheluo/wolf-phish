@@ -2,19 +2,19 @@
 
 require_once 'BaseModel.php';
 
-class User extends BaseModel {
+class UserModel extends BaseModel {
     protected $table = 'users';
-    protected $fillable = ['username', 'password', 'email', 'role', 'full_name', 'department', 'is_active'];
-    protected $hidden = ['password'];
+    protected $fillable = ['username', 'password_hash', 'email', 'role', 'full_name', 'department', 'status'];
+    protected $hidden = ['password_hash'];
     
     /**
      * 用戶登入驗證
      */
     public function authenticate($username, $password) {
-        $sql = "SELECT * FROM users WHERE (username = ? OR email = ?) AND is_active = 1";
+        $sql = "SELECT * FROM users WHERE (username = ? OR email = ?) AND status = 'active'";
         $user = Database::fetch($sql, [$username, $username]);
         
-        if ($user && Utils::verifyPassword($password, $user['password'])) {
+        if ($user && Utils::verifyPassword($password, $user['password_hash'])) {
             return $this->hideFields([$user])[0];
         }
         
@@ -37,7 +37,8 @@ class User extends BaseModel {
         
         // 密碼哈希處理
         if (isset($data['password'])) {
-            $data['password'] = Utils::hashPassword($data['password']);
+            $data['password_hash'] = Utils::hashPassword($data['password']);
+            unset($data['password']); // 移除原始密碼
         }
         
         return $this->create($data);
@@ -49,7 +50,8 @@ class User extends BaseModel {
     public function updateUser($userId, $data) {
         // 如果更新密碼，需要哈希處理
         if (isset($data['password']) && !empty($data['password'])) {
-            $data['password'] = Utils::hashPassword($data['password']);
+            $data['password_hash'] = Utils::hashPassword($data['password']);
+            unset($data['password']); // 移除原始密碼
         } else {
             // 如果密碼為空，不更新密碼字段
             unset($data['password']);
@@ -76,14 +78,14 @@ class User extends BaseModel {
      * 更改密碼
      */
     public function changePassword($userId, $oldPassword, $newPassword) {
-        $user = Database::fetch("SELECT password FROM users WHERE id = ?", [$userId]);
+        $user = Database::fetch("SELECT password_hash FROM users WHERE id = ?", [$userId]);
         
-        if (!$user || !Utils::verifyPassword($oldPassword, $user['password'])) {
+        if (!$user || !Utils::verifyPassword($oldPassword, $user['password_hash'])) {
             throw new Exception('原密碼錯誤');
         }
         
         $hashedPassword = Utils::hashPassword($newPassword);
-        return $this->update($userId, ['password' => $hashedPassword]);
+        return $this->update($userId, ['password_hash' => $hashedPassword]);
     }
     
     /**
@@ -91,7 +93,7 @@ class User extends BaseModel {
      */
     public function resetPassword($userId, $newPassword) {
         $hashedPassword = Utils::hashPassword($newPassword);
-        return $this->update($userId, ['password' => $hashedPassword]);
+        return $this->update($userId, ['password_hash' => $hashedPassword]);
     }
     
     /**
@@ -144,7 +146,7 @@ class User extends BaseModel {
      * 獲取活躍用戶列表
      */
     public function getActiveUsers($role = null) {
-        $sql = "SELECT * FROM users WHERE is_active = 1";
+        $sql = "SELECT * FROM users WHERE status = 'active'";
         $params = [];
         
         if ($role) {
@@ -162,14 +164,14 @@ class User extends BaseModel {
      * 停用用戶
      */
     public function deactivate($userId) {
-        return $this->update($userId, ['is_active' => 0]);
+        return $this->update($userId, ['status' => 'inactive']);
     }
     
     /**
      * 啟用用戶
      */
     public function activate($userId) {
-        return $this->update($userId, ['is_active' => 1]);
+        return $this->update($userId, ['status' => 'active']);
     }
     
     /**
@@ -209,7 +211,7 @@ class User extends BaseModel {
     public function searchUsers($keyword, $role = null, $limit = 50) {
         $sql = "SELECT * FROM users WHERE 
                 (username LIKE ? OR email LIKE ? OR full_name LIKE ?) 
-                AND is_active = 1";
+                AND status = 'active'";
         $params = ["%$keyword%", "%$keyword%", "%$keyword%"];
         
         if ($role) {

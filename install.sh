@@ -60,12 +60,22 @@ fi
 mkdir -p "$PROJECT_DIR"
 cp -r ./* "$PROJECT_DIR/"
 
+# 創建必要的目錄
+echo "正在創建必要的目錄..."
+mkdir -p "$PROJECT_DIR/uploads"
+mkdir -p "$PROJECT_DIR/logs"
+mkdir -p "$PROJECT_DIR/cache"
+mkdir -p "$PROJECT_DIR/tmp"
+
 # 設置目錄權限
 echo "正在設置目錄權限..."
 chown -R www-data:www-data "$PROJECT_DIR"
 chmod -R 755 "$PROJECT_DIR"
 chmod -R 775 "$PROJECT_DIR/uploads"
 chmod -R 775 "$PROJECT_DIR/templates"
+chmod -R 775 "$PROJECT_DIR/logs"
+chmod -R 775 "$PROJECT_DIR/cache"
+chmod -R 775 "$PROJECT_DIR/tmp"
 
 # 配置 MySQL
 echo "正在配置 MySQL..."

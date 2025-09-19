@@ -3,8 +3,8 @@
 class Database {
     private static $host = 'localhost';
     private static $dbname = 'cretech_phish';
-    private static $username = 'root';
-    private static $password = '';
+    private static $username = 'phish_user';
+    private static $password = 'phish_password_2023';
     private static $connection = null;
 
     public static function getConnection() {
@@ -41,6 +41,11 @@ class Database {
     public static function fetchAll($sql, $params = array()) {
         $stmt = self::query($sql, $params);
         return $stmt->fetchAll();
+    }
+
+    public static function fetchValue($sql, $params = array()) {
+        $stmt = self::query($sql, $params);
+        return $stmt->fetchColumn();
     }
 
     public static function lastInsertId() {

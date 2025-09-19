@@ -79,6 +79,43 @@ chmod -R 775 "$PROJECT_DIR/tmp"
 
 # 配置 MySQL
 echo "正在配置 MySQL..."
+
+# 配置 MySQL 客戶端 socket
+echo "正在配置 MySQL 客戶端 socket..."
+if [ -f /etc/mysql/my.cnf ]; then
+    # 檢查是否已存在 [client] 區塊
+    if grep -q "\[client\]" /etc/mysql/my.cnf; then
+        # 如果存在，檢查是否已有 socket 配置
+        if ! grep -A5 "\[client\]" /etc/mysql/my.cnf | grep -q "socket="; then
+            # 在 [client] 區塊後添加 socket 配置
+            sed -i '/\[client\]/a socket=/var/run/mysqld/mysqld.sock' /etc/mysql/my.cnf
+        fi
+    else
+        # 如果不存在 [client] 區塊，則添加整個區塊
+        echo "" >> /etc/mysql/my.cnf
+        echo "[client]" >> /etc/mysql/my.cnf
+        echo "socket=/var/run/mysqld/mysqld.sock" >> /etc/mysql/my.cnf
+    fi
+elif [ -f /etc/mysql/mysql.conf.d/mysqld.cnf ]; then
+    # 處理 mysqld.cnf 文件
+    if grep -q "\[client\]" /etc/mysql/mysql.conf.d/mysqld.cnf; then
+        if ! grep -A5 "\[client\]" /etc/mysql/mysql.conf.d/mysqld.cnf | grep -q "socket="; then
+            sed -i '/\[client\]/a socket=/var/run/mysqld/mysqld.sock' /etc/mysql/mysql.conf.d/mysqld.cnf
+        fi
+    else
+        echo "" >> /etc/mysql/mysql.conf.d/mysqld.cnf
+        echo "[client]" >> /etc/mysql/mysql.conf.d/mysqld.cnf
+        echo "socket=/var/run/mysqld/mysqld.sock" >> /etc/mysql/mysql.conf.d/mysqld.cnf
+    fi
+else
+    # 創建客戶端配置文件
+    mkdir -p /etc/mysql/mysql.conf.d/
+    cat > /etc/mysql/mysql.conf.d/client.cnf << 'EOF'
+[client]
+socket=/var/run/mysqld/mysqld.sock
+EOF
+fi
+
 mysql -e "CREATE DATABASE IF NOT EXISTS cretech_phish CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
 mysql -e "CREATE USER IF NOT EXISTS 'phish_user'@'localhost' IDENTIFIED BY 'phish_password_2023';"
 mysql -e "GRANT ALL PRIVILEGES ON cretech_phish.* TO 'phish_user'@'localhost';"

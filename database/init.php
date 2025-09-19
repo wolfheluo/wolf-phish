@@ -6,7 +6,7 @@
  */
 
 require_once dirname(__DIR__) . '/config/config.php';
-require_once dirname(__DIR__) . '/config/Database.php';
+require_once dirname(__DIR__) . '/config/database.php';
 
 try {
     echo "開始初始化數據庫...\n";

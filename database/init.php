@@ -65,16 +65,19 @@ try {
         echo "  用戶名: admin\n";
         echo "  密碼: admin123\n";
         echo "  ⚠️  請立即更改默認密碼！\n\n";
+    } else {
+        echo "✓ 管理員用戶已存在，跳過插入\n";
     }
     
     // 驗證數據庫結構
     echo "驗證數據庫結構...\n";
     
     $tables = [
-        'users', 'projects', 'email_templates', 'sent_emails',
-        'track_pixel_logs', 'track_url_logs', 'track_zip_logs',
-        'track_data_logs', 'track_credentials', 'track_page_visits',
-        'system_logs'
+        'users', 'projects', 'email_templates', 'phishing_sites',
+        'target_emails', 'sent_emails', 'track_pixel_logs', 
+        'track_url_logs', 'track_zip_logs', 'track_data_logs',
+        'track_credentials', 'track_page_visits', 'system_logs',
+        'sessions'
     ];
     
     $missingTables = [];

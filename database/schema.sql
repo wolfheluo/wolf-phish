@@ -174,6 +174,52 @@ CREATE TABLE sessions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- 12. 發送郵件記錄表
+CREATE TABLE sent_emails (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    html_content LONGTEXT,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('sent', 'failed', 'bounced') DEFAULT 'sent',
+    error_message TEXT,
+    INDEX idx_project_id (project_id),
+    INDEX idx_email (email),
+    INDEX idx_sent_at (sent_at),
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+
+-- 13. 憑證捕獲表
+CREATE TABLE track_credentials (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    username VARCHAR(255),
+    password VARCHAR(255),
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    captured_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_project_email (project_id, email),
+    INDEX idx_captured_at (captured_at),
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+
+-- 14. 頁面訪問追蹤表
+CREATE TABLE track_page_visits (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    page_url VARCHAR(500),
+    referrer VARCHAR(500),
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    visited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_project_email (project_id, email),
+    INDEX idx_visited_at (visited_at),
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+
 
 -- 插入預設管理員帳戶
 INSERT INTO users (username, password_hash, email, role, full_name, status) VALUES

@@ -174,10 +174,13 @@ CREATE TABLE sessions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+
 -- 插入預設管理員帳戶
 INSERT INTO users (username, password, email, role, full_name) VALUES
 ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@cretech.com', 'admin', 'System Administrator');
 
+-- 示例數據插入已停用
+/*
 -- 插入範例郵件模板
 INSERT INTO email_templates (name, description, subject, html_content, created_by) VALUES
 ('銀行詐騙模板', '模擬銀行安全通知的釣魚郵件', '【重要】您的帳戶安全驗證', 
@@ -250,3 +253,4 @@ INSERT INTO phishing_sites (name, description, html_content, site_type, created_
     </script>
 </body>
 </html>', 'login', 1);
+*/

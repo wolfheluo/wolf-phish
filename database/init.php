@@ -67,7 +67,8 @@ try {
         echo "  ⚠️  請立即更改默認密碼！\n\n";
     }
     
-    // 插入示例郵件模板
+    // 插入示例郵件模板 - 已停用
+    /*
     $templateCount = Database::fetchValue("SELECT COUNT(*) FROM email_templates");
     
     if ($templateCount == 0) {
@@ -192,6 +193,7 @@ try {
         
         echo "✓ 示例郵件模板已插入\n\n";
     }
+    */
     
     // 驗證數據庫結構
     echo "驗證數據庫結構...\n";

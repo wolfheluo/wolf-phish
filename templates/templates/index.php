@@ -242,9 +242,9 @@
 </div>
 
 <script>
-const { createApp } = Vue;
-
-createApp({
+window.addEventListener('load', function() {
+    if (typeof Vue !== 'undefined') {
+        Vue.createApp({
     data() {
         return {
             activeTab: 'email',
@@ -294,13 +294,17 @@ createApp({
         async loadTemplates() {
             try {
                 // 載入郵件範本
-                const emailResponse = await fetch('/api/templates?type=email');
+                const emailResponse = await fetch('/api/templates?type=email', {
+                    credentials: 'same-origin'
+                });
                 if (emailResponse.ok) {
                     this.emailTemplates = await emailResponse.json();
                 }
                 
                 // 載入釣魚網站範本
-                const siteResponse = await fetch('/api/templates?type=phishing');
+                const siteResponse = await fetch('/api/templates?type=phishing', {
+                    credentials: 'same-origin'
+                });
                 if (siteResponse.ok) {
                     this.phishingSites = await siteResponse.json();
                 }
@@ -325,7 +329,11 @@ createApp({
             previewWindow.document.write(site.html_content);
         }
     }
-}).mount('#templatesApp');
+    }).mount('#templatesApp');
+    } else {
+        console.error('Vue.js not loaded');
+    }
+});
 </script>
 
 <?php

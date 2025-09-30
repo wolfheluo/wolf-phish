@@ -253,9 +253,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const { createApp } = Vue;
-
-createApp({
+window.addEventListener('load', function() {
+    if (typeof Vue !== 'undefined') {
+        Vue.createApp({
     data() {
         return {
             projects: [],
@@ -414,7 +414,11 @@ createApp({
             return texts[status] || '未知';
         }
     }
-}).mount('#reportsApp');
+    }).mount('#reportsApp');
+    } else {
+        console.error('Vue.js not loaded');
+    }
+});
 </script>
 
 <?php

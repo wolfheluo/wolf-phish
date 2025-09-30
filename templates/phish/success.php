@@ -154,6 +154,7 @@
             // 發送時間統計（可選）
             fetch('/api/track-time', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json'
                 },

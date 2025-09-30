@@ -152,6 +152,7 @@
     if (typeof project_id !== 'undefined' && typeof email !== 'undefined') {
         fetch('/track/page', {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
             },

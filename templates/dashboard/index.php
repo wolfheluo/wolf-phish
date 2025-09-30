@@ -217,9 +217,10 @@
 </div>
 
 <script>
-const { createApp } = Vue;
-
-createApp({
+// 等待Vue.js載入完成
+window.addEventListener('load', function() {
+    if (typeof Vue !== 'undefined') {
+        Vue.createApp({
     data() {
         return {
             loading: true,
@@ -371,7 +372,11 @@ createApp({
             return date.toLocaleDateString('zh-TW') + ' ' + date.toLocaleTimeString('zh-TW', {hour: '2-digit', minute: '2-digit'});
         }
     }
-}).mount('#dashboardApp');
+    }).mount('#dashboardApp');
+    } else {
+        console.error('Vue.js not loaded');
+    }
+});
 </script>
 
 <style>

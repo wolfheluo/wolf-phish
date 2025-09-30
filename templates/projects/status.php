@@ -245,9 +245,9 @@
 </div>
 
 <script>
-const { createApp } = Vue;
-
-createApp({
+window.addEventListener('load', function() {
+    if (typeof Vue !== 'undefined') {
+        Vue.createApp({
     data() {
         return {
             projects: [],
@@ -277,7 +277,9 @@ createApp({
     methods: {
         async loadProjects() {
             try {
-                const response = await fetch('/api/projects');
+                const response = await fetch('/api/projects', {
+                    credentials: 'same-origin'
+                });
                 if (response.ok) {
                     this.projects = await response.json();
                 }
@@ -329,7 +331,9 @@ createApp({
         
         async viewDetails(project) {
             try {
-                const response = await fetch(`/api/projects/${project.id}`);
+                const response = await fetch(`/api/projects/${project.id}`, {
+                    credentials: 'same-origin'
+                });
                 if (response.ok) {
                     this.selectedProject = await response.json();
                     new bootstrap.Modal(document.getElementById('projectDetailsModal')).show();
@@ -343,7 +347,8 @@ createApp({
             if (confirm('確定要啟動此專案嗎？')) {
                 try {
                     const response = await fetch(`/api/projects/${project.id}/start`, {
-                        method: 'POST'
+                        method: 'POST',
+                        credentials: 'same-origin'
                     });
                     
                     if (response.ok) {
@@ -359,7 +364,8 @@ createApp({
             if (confirm('確定要暫停此專案嗎？')) {
                 try {
                     const response = await fetch(`/api/projects/${project.id}/pause`, {
-                        method: 'POST'
+                        method: 'POST',
+                        credentials: 'same-origin'
                     });
                     
                     if (response.ok) {
@@ -375,7 +381,8 @@ createApp({
             if (confirm('確定要停止此專案嗎？此操作不可撤銷！')) {
                 try {
                     const response = await fetch(`/api/projects/${project.id}/stop`, {
-                        method: 'POST'
+                        method: 'POST',
+                        credentials: 'same-origin'
                     });
                     
                     if (response.ok) {
@@ -391,7 +398,11 @@ createApp({
             this.loadProjects();
         }
     }
-}).mount('#projectStatusApp');
+    }).mount('#projectStatusApp');
+    } else {
+        console.error('Vue.js not loaded');
+    }
+});
 </script>
 
 <?php

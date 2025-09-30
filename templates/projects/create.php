@@ -215,9 +215,9 @@
 </div>
 
 <script>
-const { createApp } = Vue;
-
-createApp({
+window.addEventListener('load', function() {
+    if (typeof Vue !== 'undefined') {
+        Vue.createApp({
     data() {
         return {
             projectForm: {
@@ -256,13 +256,17 @@ createApp({
         async loadTemplates() {
             try {
                 // 載入郵件模板
-                const emailResponse = await fetch('/api/templates?type=email');
+                const emailResponse = await fetch('/api/templates?type=email', {
+                    credentials: 'same-origin'
+                });
                 if (emailResponse.ok) {
                     this.emailTemplates = await emailResponse.json();
                 }
                 
                 // 載入釣魚網站模板
-                const siteResponse = await fetch('/api/templates?type=phishing');
+                const siteResponse = await fetch('/api/templates?type=phishing', {
+                    credentials: 'same-origin'
+                });
                 if (siteResponse.ok) {
                     this.phishingSites = await siteResponse.json();
                 }
@@ -398,7 +402,11 @@ createApp({
             this.setDefaultDates();
         }
     }
-}).mount('#projectsApp');
+    }).mount('#projectsApp');
+    } else {
+        console.error('Vue.js not loaded');
+    }
+});
 </script>
 
 <?php

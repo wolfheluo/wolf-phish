@@ -157,6 +157,7 @@
         // 記錄頁面訪問
         fetch('/track/page-visit', {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -172,6 +173,7 @@
             // 記錄下載按鈕點擊
             fetch('/track/button-click', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json'
                 },

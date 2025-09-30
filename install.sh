@@ -1,12 +1,14 @@
 #!/bin/bash
 
 # Cretech-PHISH 安裝腳本
-# 適用於 Ubuntu/Debian 系統
+# 適用於 aaPanel 環境的 Ubuntu/Debian 系統
+# 需要預先安裝和配置 aaPanel LNMP 環境
 
 set -e
 
 echo "======================================"
 echo "Cretech-PHISH 社交工程測試平台安裝程序"
+echo "適用於 aaPanel 環境"
 echo "======================================"
 
 # 檢查系統
@@ -16,36 +18,21 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# 更新系統
-echo "正在更新系統包..."
-apt update && apt upgrade -y
+echo "請先完成 aaPanel 環境配置，再執行此腳本"
+echo "aaPanel 配置要求請參考腳本最後的說明"
 
-# 安裝必要的系統包
-echo "正在安裝系統依賴..."
-apt install -y \
-    nginx \
-    php8.1 \
-    php8.1-fpm \
-    php8.1-mysql \
-    php8.1-mbstring \
-    php8.1-xml \
-    php8.1-curl \
-    php8.1-zip \
-    php8.1-gd \
-    mysql-server \
-    postfix \
-    supervisor \
-    git \
-    curl \
-    wget \
-    unzip
-
-# 安裝 Composer
+# 檢查 Composer 是否已安裝
 if ! command -v composer &> /dev/null; then
-    echo "正在安裝 Composer..."
-    curl -sS https://getcomposer.org/installer | php
-    mv composer.phar /usr/local/bin/composer
-    chmod +x /usr/local/bin/composer
+    echo "警告：未檢測到 Composer"
+    echo "請在 aaPanel 中安裝 Composer 或手動安裝："
+    echo "curl -sS https://getcomposer.org/installer | php"
+    echo "mv composer.phar /usr/local/bin/composer"
+    echo "chmod +x /usr/local/bin/composer"
+    echo ""
+    echo "如需繼續安裝，請先安裝 Composer 後重新執行此腳本"
+    exit 1
+else
+    echo "Composer 已安裝，版本：$(composer --version)"
 fi
 
 # 創建項目目錄
@@ -77,177 +64,39 @@ chmod -R 775 "$PROJECT_DIR/logs"
 chmod -R 775 "$PROJECT_DIR/cache"
 chmod -R 775 "$PROJECT_DIR/tmp"
 
-# 配置 MySQL
-echo "正在配置 MySQL..."
-
-# 配置 MySQL 客戶端 socket
-echo "正在配置 MySQL 客戶端 socket..."
-if [ -f /etc/mysql/my.cnf ]; then
-    # 檢查是否已存在 [client] 區塊
-    if grep -q "\[client\]" /etc/mysql/my.cnf; then
-        # 如果存在，檢查是否已有 socket 配置
-        if ! grep -A5 "\[client\]" /etc/mysql/my.cnf | grep -q "socket="; then
-            # 在 [client] 區塊後添加 socket 配置
-            sed -i '/\[client\]/a socket=/var/run/mysqld/mysqld.sock' /etc/mysql/my.cnf
-        fi
-    else
-        # 如果不存在 [client] 區塊，則添加整個區塊
-        echo "" >> /etc/mysql/my.cnf
-        echo "[client]" >> /etc/mysql/my.cnf
-        echo "socket=/var/run/mysqld/mysqld.sock" >> /etc/mysql/my.cnf
-    fi
-elif [ -f /etc/mysql/mysql.conf.d/mysqld.cnf ]; then
-    # 處理 mysqld.cnf 文件
-    if grep -q "\[client\]" /etc/mysql/mysql.conf.d/mysqld.cnf; then
-        if ! grep -A5 "\[client\]" /etc/mysql/mysql.conf.d/mysqld.cnf | grep -q "socket="; then
-            sed -i '/\[client\]/a socket=/var/run/mysqld/mysqld.sock' /etc/mysql/mysql.conf.d/mysqld.cnf
-        fi
-    else
-        echo "" >> /etc/mysql/mysql.conf.d/mysqld.cnf
-        echo "[client]" >> /etc/mysql/mysql.conf.d/mysqld.cnf
-        echo "socket=/var/run/mysqld/mysqld.sock" >> /etc/mysql/mysql.conf.d/mysqld.cnf
-    fi
-else
-    # 創建客戶端配置文件
-    mkdir -p /etc/mysql/mysql.conf.d/
-    cat > /etc/mysql/mysql.conf.d/client.cnf << 'EOF'
-[client]
-socket=/var/run/mysqld/mysqld.sock
-EOF
-fi
-
-mysql -e "CREATE DATABASE IF NOT EXISTS cretech_phish CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
-mysql -e "CREATE USER IF NOT EXISTS 'phish_user'@'localhost' IDENTIFIED BY 'phish_password_2023';"
-mysql -e "GRANT ALL PRIVILEGES ON cretech_phish.* TO 'phish_user'@'localhost';"
-mysql -e "FLUSH PRIVILEGES;"
+# aaPanel MySQL 配置
+echo "請在 aaPanel 中手動創建 MySQL 資料庫和用戶"
+echo "資料庫名稱: cretech_phish"
+echo "用戶名稱: phish_user"
+echo "密碼: phish_password_2023"
+echo "權限: 授予該用戶對 cretech_phish 資料庫的完整權限"
 
 # 初始化資料庫
 echo "正在初始化資料庫..."
 cd "$PROJECT_DIR"
 php database/init.php
 
-# 配置 Nginx
-echo "正在配置 Nginx..."
-cat > /etc/nginx/sites-available/cretech-phish << 'EOF'
-server {
-    listen 80;
-    server_name localhost;
-    root /var/www/cretech-phish/public;
-    index index.php index.html;
+# aaPanel Nginx 配置
+echo "請在 aaPanel 中手動配置網站"
+echo "網站根目錄: /var/www/cretech-phish/public"
+echo "PHP 版本: 8.1"
+echo "請參考腳本最後的 Nginx 配置範例進行設置"
 
-    # 安全頭
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "no-referrer-when-downgrade" always;
-    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+# aaPanel PHP 配置
+echo "請在 aaPanel 中手動調整 PHP 設置"
+echo "需要修改的 PHP 參數："
+echo "- cgi.fix_pathinfo = 0"
+echo "- upload_max_filesize = 20M"
+echo "- post_max_size = 25M"
+echo "- max_execution_time = 300"
+echo "- memory_limit = 256M"
+echo ""
+echo "請安裝 Postfix 郵件服務或在 aaPanel 中配置 SMTP 設置"
 
-    # 主要位置配置
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    # PHP 處理
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-
-    # 靜態文件緩存
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        try_files $uri =404;
-    }
-
-    # 隱藏敏感文件
-    location ~ /\. {
-        deny all;
-        access_log off;
-        log_not_found off;
-    }
-
-    location ~ /\.git {
-        deny all;
-        access_log off;
-        log_not_found off;
-    }
-
-    # 上傳文件訪問
-    location /uploads/ {
-        alias /var/www/cretech-phish/uploads/;
-        autoindex off;
-    }
-
-    # API路由
-    location /api/ {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    # 追蹤端點
-    location /track/ {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    # 釣魚頁面
-    location /phish/ {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    # 日志配置
-    access_log /var/log/nginx/cretech-phish.access.log;
-    error_log /var/log/nginx/cretech-phish.error.log;
-}
-EOF
-
-# 啟用站點
-ln -sf /etc/nginx/sites-available/cretech-phish /etc/nginx/sites-enabled/
-rm -f /etc/nginx/sites-enabled/default
-
-# 測試 Nginx 配置
-nginx -t
-
-# 配置 PHP-FPM
-echo "正在配置 PHP-FPM..."
-sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/' /etc/php/8.1/fpm/php.ini
-sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 20M/' /etc/php/8.1/fpm/php.ini
-sed -i 's/post_max_size = 8M/post_max_size = 25M/' /etc/php/8.1/fpm/php.ini
-sed -i 's/max_execution_time = 30/max_execution_time = 300/' /etc/php/8.1/fpm/php.ini
-sed -i 's/memory_limit = 128M/memory_limit = 256M/' /etc/php/8.1/fpm/php.ini
-
-# 配置 Postfix (簡單配置)
-echo "正在配置 Postfix..."
-debconf-set-selections <<< "postfix postfix/mailname string $(hostname -f)"
-debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-
-# 配置 Supervisor (用於後台任務)
-echo "正在配置 Supervisor..."
-cat > /etc/supervisor/conf.d/cretech-phish.conf << 'EOF'
-[program:phish-queue]
-command=php /var/www/cretech-phish/scripts/queue-worker.php
-directory=/var/www/cretech-phish
-autostart=true
-autorestart=true
-user=www-data
-numprocs=2
-redirect_stderr=true
-stdout_logfile=/var/log/supervisor/phish-queue.log
-stdout_logfile_maxbytes=10MB
-stdout_logfile_backups=5
-
-[program:phish-scheduler]
-command=php /var/www/cretech-phish/scripts/scheduler.php
-directory=/var/www/cretech-phish
-autostart=true
-autorestart=true
-user=www-data
-redirect_stderr=true
-stdout_logfile=/var/log/supervisor/phish-scheduler.log
-stdout_logfile_maxbytes=10MB
-stdout_logfile_backups=5
-EOF
+# aaPanel Supervisor 配置
+echo "請在 aaPanel 中手動配置 Supervisor 守護程序"
+echo "或使用系統級別的 Supervisor 配置"
+echo "請參考腳本最後的 Supervisor 配置範例"
 
 # 創建後台腳本目錄
 mkdir -p "$PROJECT_DIR/scripts"
@@ -450,33 +299,19 @@ EOF
 chmod +x "$PROJECT_DIR/scripts/"*.php
 chown -R www-data:www-data "$PROJECT_DIR/scripts"
 
-# 啟動服務
-echo "正在啟動服務..."
-systemctl restart nginx
-systemctl restart php8.1-fpm
-systemctl restart mysql
-systemctl restart postfix
-systemctl restart supervisor
+# aaPanel 服務管理
+echo "請在 aaPanel 中檢查和啟動相關服務："
+echo "- Nginx"
+echo "- PHP-FPM 8.1"
+echo "- MySQL"
+echo "- Supervisor (如有安裝)"
 
-# 設置服務開機啟動
-systemctl enable nginx
-systemctl enable php8.1-fpm
-systemctl enable mysql
-systemctl enable postfix
-systemctl enable supervisor
-
-# 更新 Supervisor 配置
-supervisorctl reread
-supervisorctl update
-
-# 創建防火牆規則
-echo "正在配置防火牆..."
-if command -v ufw &> /dev/null; then
-    ufw allow 22    # SSH
-    ufw allow 80    # HTTP
-    ufw allow 443   # HTTPS
-    ufw --force enable
-fi
+# aaPanel 防火牆配置
+echo "請在 aaPanel 安全面板中配置防火牆規則："
+echo "- 開放端口 22 (SSH)"
+echo "- 開放端口 80 (HTTP)"
+echo "- 開放端口 443 (HTTPS)"
+echo "- 根據需要開放其他端口"
 
 # 創建日誌輪換配置
 cat > /etc/logrotate.d/cretech-phish << 'EOF'
@@ -530,15 +365,119 @@ echo "2. 建議配置 HTTPS 證書"
 echo "3. 檢查防火牆設定"
 echo "4. 定期備份資料庫"
 echo ""
-echo "服務狀態檢查："
-echo "- Nginx: $(systemctl is-active nginx)"
-echo "- PHP-FPM: $(systemctl is-active php8.1-fpm)"
-echo "- MySQL: $(systemctl is-active mysql)"
-echo "- Postfix: $(systemctl is-active postfix)"
-echo "- Supervisor: $(systemctl is-active supervisor)"
+echo "請在 aaPanel 中檢查服務狀態："
+echo "- Nginx"
+echo "- PHP-FPM 8.1"
+echo "- MySQL"
+echo "- Postfix (如有安裝)"
+echo "- Supervisor (如有安裝)"
 echo ""
-echo "如有問題，請檢查日誌："
-echo "- nginx -t  # 檢查配置"
-echo "- systemctl status nginx"
-echo "- tail -f /var/log/nginx/cretech-phish.error.log"
+echo "如有問題，請檢查 aaPanel 中的相關日誌"
+echo ""
+echo "======================================"
+echo "aaPanel 配置指南"
+echo "======================================"
+echo ""
+echo "1. MySQL 配置："
+echo "   - 登入 aaPanel > 資料庫"
+echo "   - 創建資料庫：cretech_phish"
+echo "   - 字符集：utf8mb4"
+echo "   - 創建用戶：phish_user"
+echo "   - 密碼：phish_password_2023"
+echo "   - 權限：選擇 cretech_phish 資料庫的完整權限"
+echo ""
+echo "2. 網站配置："
+echo "   - 登入 aaPanel > 網站"
+echo "   - 添加站點，域名設置為您的域名或 IP"
+echo "   - 網站目錄：/var/www/cretech-phish/public"
+echo "   - PHP 版本：8.1"
+echo "   - 在站點設置中添加以下 Nginx 規則："
+echo ""
+echo "   location / {"
+echo "       try_files \$uri \$uri/ /index.php?\$query_string;"
+echo "   }"
+echo ""
+echo "   location /uploads/ {"
+echo "       alias /var/www/cretech-phish/uploads/;"
+echo "       autoindex off;"
+echo "   }"
+echo ""
+echo "   location /api/ {"
+echo "       try_files \$uri \$uri/ /index.php?\$query_string;"
+echo "   }"
+echo ""
+echo "   location /track/ {"
+echo "       try_files \$uri \$uri/ /index.php?\$query_string;"
+echo "   }"
+echo ""
+echo "   location /phish/ {"
+echo "       try_files \$uri \$uri/ /index.php?\$query_string;"
+echo "   }"
+echo ""
+echo "   # 安全頭設置"
+echo "   add_header X-Frame-Options \"SAMEORIGIN\" always;"
+echo "   add_header X-XSS-Protection \"1; mode=block\" always;"
+echo "   add_header X-Content-Type-Options \"nosniff\" always;"
+echo "   add_header Referrer-Policy \"no-referrer-when-downgrade\" always;"
+echo "   add_header Content-Security-Policy \"default-src 'self' http: https: data: blob: 'unsafe-inline'\" always;"
+echo ""
+echo "3. PHP 設置："
+echo "   - 登入 aaPanel > 軟體商店 > PHP 8.1 > 設置"
+echo "   - 調整以下參數："
+echo "     * cgi.fix_pathinfo = 0"
+echo "     * upload_max_filesize = 20M"
+echo "     * post_max_size = 25M"
+echo "     * max_execution_time = 300"
+echo "     * memory_limit = 256M"
+echo "   - 安裝必要的擴展："
+echo "     * mysqli, pdo_mysql, mbstring, xml, curl, zip, gd"
+echo ""
+echo "4. Supervisor 配置 (可選，用於後台任務)："
+echo "   - 如果 aaPanel 有 Supervisor 管理器，添加以下配置："
+echo ""
+echo "   [program:phish-queue]"
+echo "   command=php /var/www/cretech-phish/scripts/queue-worker.php"
+echo "   directory=/var/www/cretech-phish"
+echo "   autostart=true"
+echo "   autorestart=true"
+echo "   user=www-data"
+echo "   numprocs=2"
+echo "   redirect_stderr=true"
+echo "   stdout_logfile=/var/log/supervisor/phish-queue.log"
+echo "   stdout_logfile_maxbytes=10MB"
+echo "   stdout_logfile_backups=5"
+echo ""
+echo "   [program:phish-scheduler]"
+echo "   command=php /var/www/cretech-phish/scripts/scheduler.php"
+echo "   directory=/var/www/cretech-phish"
+echo "   autostart=true"
+echo "   autorestart=true"
+echo "   user=www-data"
+echo "   redirect_stderr=true"
+echo "   stdout_logfile=/var/log/supervisor/phish-scheduler.log"
+echo "   stdout_logfile_maxbytes=10MB"
+echo "   stdout_logfile_backups=5"
+echo ""
+echo "5. 防火牆配置："
+echo "   - 登入 aaPanel > 安全"
+echo "   - 開放端口："
+echo "     * 22 (SSH)"
+echo "     * 80 (HTTP)"
+echo "     * 443 (HTTPS)"
+echo "     * 根據需要開放其他端口"
+echo ""
+echo "6. SSL 證書配置 (建議)："
+echo "   - 登入 aaPanel > 網站 > 您的站點 > SSL"
+echo "   - 申請 Let's Encrypt 免費證書或上傳自己的證書"
+echo ""
+echo "7. 郵件服務配置："
+echo "   - 選項 1：在 aaPanel 中安裝和配置 Postfix"
+echo "   - 選項 2：使用外部 SMTP 服務（如 Gmail, SendGrid 等）"
+echo "   - 修改 /var/www/cretech-phish/config/config.php 中的郵件設置"
+echo ""
+echo "注意事項："
+echo "- 執行此腳本前請確保 aaPanel 已正確安裝並運行"
+echo "- 建議先在 aaPanel 中安裝 LNMP 環境"
+echo "- 資料庫初始化需要在 MySQL 配置完成後執行"
+echo "- 定期備份資料庫和網站文件"
 echo "======================================"

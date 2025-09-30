@@ -543,4 +543,137 @@ class DashboardController extends BaseController {
             $this->error($e->getMessage());
         }
     }
+    
+    /**
+     * 獲取模板列表 (API)
+     */
+    public function getTemplates() {
+        try {
+            $this->requireAuth();
+            
+            $type = $_GET['type'] ?? 'all';
+            $userId = Session::getUserId();
+            $userRole = Session::getUserRole();
+            
+            $db = Database::getConnection();
+            
+            if ($type === 'email') {
+                // 獲取郵件模板
+                $sql = "SELECT * FROM email_templates WHERE 1=1";
+                $params = [];
+                
+                if ($userRole !== 'admin') {
+                    $sql .= " AND created_by = ?";
+                    $params[] = $userId;
+                }
+                
+                $sql .= " ORDER BY created_at DESC";
+                $stmt = $db->prepare($sql);
+                $stmt->execute($params);
+                $templates = $stmt->fetchAll();
+                
+            } elseif ($type === 'phishing') {
+                // 獲取釣魚網站模板
+                $sql = "SELECT * FROM phishing_sites WHERE 1=1";
+                $params = [];
+                
+                if ($userRole !== 'admin') {
+                    $sql .= " AND created_by = ?";
+                    $params[] = $userId;
+                }
+                
+                $sql .= " ORDER BY created_at DESC";
+                $stmt = $db->prepare($sql);
+                $stmt->execute($params);
+                $templates = $stmt->fetchAll();
+                
+            } else {
+                // 獲取所有模板
+                $emailSql = "SELECT *, 'email' as template_type FROM email_templates WHERE 1=1";
+                $phishingSql = "SELECT *, 'phishing' as template_type FROM phishing_sites WHERE 1=1";
+                $params = [];
+                
+                if ($userRole !== 'admin') {
+                    $emailSql .= " AND created_by = ?";
+                    $phishingSql .= " AND created_by = ?";
+                    $params = [$userId, $userId];
+                }
+                
+                $sql = "($emailSql) UNION ($phishingSql) ORDER BY created_at DESC";
+                $stmt = $db->prepare($sql);
+                $stmt->execute($params);
+                $templates = $stmt->fetchAll();
+            }
+            
+            $this->success($templates);
+            
+        } catch (Exception $e) {
+            $this->log('ERROR', 'Get templates error', ['error' => $e->getMessage()]);
+            $this->error($e->getMessage());
+        }
+    }
+    
+    /**
+     * 創建模板 (API)
+     */
+    public function createTemplate() {
+        try {
+            $this->requireAuth();
+            
+            $data = $this->getPostData();
+            $userId = Session::getUserId();
+            
+            $type = $data['type'] ?? '';
+            $name = $this->sanitizeInput($data['name'] ?? '');
+            $description = $this->sanitizeInput($data['description'] ?? '');
+            
+            if (empty($name) || empty($type)) {
+                $this->error('名稱和類型為必填項');
+            }
+            
+            $db = Database::getConnection();
+            
+            if ($type === 'email') {
+                // 創建郵件模板
+                $subject = $this->sanitizeInput($data['subject'] ?? '');
+                $htmlContent = $data['html_content'] ?? '';
+                
+                if (empty($subject)) {
+                    $this->error('郵件主旨為必填項');
+                }
+                
+                $stmt = $db->prepare("
+                    INSERT INTO email_templates (name, description, subject, html_content, created_by, created_at)
+                    VALUES (?, ?, ?, ?, ?, NOW())
+                ");
+                $stmt->execute([$name, $description, $subject, $htmlContent, $userId]);
+                $templateId = $db->lastInsertId();
+                
+                $this->log('INFO', 'Email template created', ['template_id' => $templateId, 'name' => $name]);
+                $this->success(['id' => $templateId, 'message' => '郵件模板創建成功']);
+                
+            } elseif ($type === 'phishing') {
+                // 創建釣魚網站模板
+                $siteType = $this->sanitizeInput($data['site_type'] ?? 'login');
+                $htmlContent = $data['html_content'] ?? '';
+                
+                $stmt = $db->prepare("
+                    INSERT INTO phishing_sites (name, description, site_type, html_content, created_by, created_at)
+                    VALUES (?, ?, ?, ?, ?, NOW())
+                ");
+                $stmt->execute([$name, $description, $siteType, $htmlContent, $userId]);
+                $templateId = $db->lastInsertId();
+                
+                $this->log('INFO', 'Phishing site template created', ['template_id' => $templateId, 'name' => $name]);
+                $this->success(['id' => $templateId, 'message' => '釣魚網站模板創建成功']);
+                
+            } else {
+                $this->error('不支援的模板類型');
+            }
+            
+        } catch (Exception $e) {
+            $this->log('ERROR', 'Create template error', ['error' => $e->getMessage()]);
+            $this->error($e->getMessage());
+        }
+    }
 }

@@ -327,6 +327,88 @@ window.addEventListener('load', function() {
             // 在新視窗預覽釣魚網站
             const previewWindow = window.open('', '_blank');
             previewWindow.document.write(site.html_content);
+        },
+        
+        async saveEmailTemplate() {
+            try {
+                const formData = {
+                    type: 'email',
+                    name: this.emailTemplateForm.name,
+                    description: this.emailTemplateForm.description,
+                    subject: this.emailTemplateForm.subject,
+                    html_content: this.emailTemplateForm.html_content
+                };
+                
+                const response = await fetch('/api/templates', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                if (!result.error) {
+                    alert('郵件模板創建成功！');
+                    this.showCreateModal = false;
+                    this.resetForms();
+                    this.loadTemplates();
+                } else {
+                    alert('創建失敗: ' + result.message);
+                }
+            } catch (error) {
+                alert('創建失敗: ' + error.message);
+            }
+        },
+        
+        async savePhishingSite() {
+            try {
+                const formData = {
+                    type: 'phishing',
+                    name: this.phishingSiteForm.name,
+                    description: this.phishingSiteForm.description,
+                    site_type: this.phishingSiteForm.site_type,
+                    html_content: this.phishingSiteForm.html_content
+                };
+                
+                const response = await fetch('/api/templates', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                if (!result.error) {
+                    alert('釣魚網站模板創建成功！');
+                    this.showCreateModal = false;
+                    this.resetForms();
+                    this.loadTemplates();
+                } else {
+                    alert('創建失敗: ' + result.message);
+                }
+            } catch (error) {
+                alert('創建失敗: ' + error.message);
+            }
+        },
+        
+        resetForms() {
+            this.emailTemplateForm = {
+                name: '',
+                description: '',
+                subject: '',
+                html_content: ''
+            };
+            
+            this.phishingSiteForm = {
+                name: '',
+                description: '',
+                site_type: 'login',
+                html_content: ''
+            };
         }
     }
     }).mount('#templatesApp');

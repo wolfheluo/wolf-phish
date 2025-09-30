@@ -173,10 +173,10 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <div v-if="healthStatus" class="row">
+                    <div v-if="healthStatus" class="row health-status">
                         <div class="col-md-3">
                             <div class="text-center">
-                                <div :class="'badge badge-' + getHealthColor(healthStatus.status) + ' mb-2 p-2'">
+                                <div :class="'badge bg-' + getHealthColor(healthStatus.status) + ' mb-2 p-2'">
                                     {{ getHealthText(healthStatus.status) }}
                                 </div>
                                 <p class="small text-muted">整體狀態</p>
@@ -186,13 +186,13 @@
                             <div class="row">
                                 <div class="col-sm-6 mb-2">
                                     <small class="text-muted">資料庫:</small>
-                                    <span :class="'badge badge-' + getHealthColor(healthStatus.database?.status)">
+                                    <span :class="'badge bg-' + getHealthColor(healthStatus.database?.status)">
                                         {{ healthStatus.database?.status }}
                                     </span>
                                 </div>
                                 <div class="col-sm-6 mb-2">
                                     <small class="text-muted">郵件系統:</small>
-                                    <span :class="'badge badge-' + getHealthColor(healthStatus.mail_config?.status)">
+                                    <span :class="'badge bg-' + getHealthColor(healthStatus.mail_config?.status)">
                                         {{ healthStatus.mail_config?.status }}
                                     </span>
                                 </div>
@@ -208,6 +208,23 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div v-else-if="healthLoading" class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">載入中...</span>
+                        </div>
+                        <p class="mt-2 text-muted">正在檢查系統狀態...</p>
+                    </div>
+                    
+                    <div v-else-if="healthError" class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ healthError }}
+                    </div>
+                    
+                    <div v-else class="text-center py-3 text-muted">
+                        <i class="fas fa-question-circle fa-2x mb-2"></i>
+                        <p>系統健康狀態未載入</p>
                     </div>
                 </div>
             </div>
@@ -228,6 +245,8 @@ window.addEventListener('load', function() {
             recentProjects: [],
             projectTimeline: [],
             healthStatus: null,
+            healthLoading: false,
+            healthError: null,
             timelineChart: null
         }
     },
@@ -267,6 +286,9 @@ window.addEventListener('load', function() {
         <?php if ($user_role === 'admin'): ?>
         async loadHealthStatus() {
             try {
+                this.healthLoading = true;
+                this.healthError = null;
+                
                 const response = await fetch('/api/system/health', {
                     credentials: 'same-origin'
                 });
@@ -274,9 +296,16 @@ window.addEventListener('load', function() {
                 
                 if (!result.error) {
                     this.healthStatus = result.data;
+                    console.log('Health status loaded:', this.healthStatus);
+                } else {
+                    this.healthError = result.message || '載入系統健康狀態失敗';
+                    console.error('Health status API error:', result.message);
                 }
             } catch (error) {
+                this.healthError = '無法連接到服務器: ' + error.message;
                 console.error('Load health status error:', error);
+            } finally {
+                this.healthLoading = false;
             }
         },
         <?php endif; ?>
@@ -380,17 +409,25 @@ window.addEventListener('load', function() {
 </script>
 
 <style>
-.badge-success {
+/* 確保badge顏色正確顯示 */
+.bg-success {
     background-color: #28a745 !important;
 }
-.badge-warning {
+.bg-warning {
     background-color: #ffc107 !important;
+    color: #212529 !important;
 }
-.badge-danger {
+.bg-danger {
     background-color: #dc3545 !important;
 }
-.badge-secondary {
+.bg-secondary {
     background-color: #6c757d !important;
+}
+
+/* 健康狀態樣式 */
+.health-status .badge {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
 }
 </style>
 

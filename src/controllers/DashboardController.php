@@ -352,13 +352,14 @@ class DashboardController extends BaseController {
      */
     private function checkMailConfiguration() {
         // 檢查sendmail是否可用
-        $sendmailPath = trim(shell_exec('which sendmail 2>/dev/null'));
+        $sendmailPath = shell_exec('which sendmail 2>/dev/null');
+        $sendmailPath = $sendmailPath ? trim($sendmailPath) : '';
         $sendmailAvailable = !empty($sendmailPath) && file_exists($sendmailPath);
         
         return [
             'status' => $sendmailAvailable ? 'ok' : 'warning',
             'message' => $sendmailAvailable ? 'Sendmail 可用' : 'Sendmail 未安裝或不可用',
-            'sendmail_path' => $sendmailPath
+            'sendmail_path' => $sendmailPath ?: '未找到'
         ];
     }
     

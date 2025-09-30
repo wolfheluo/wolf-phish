@@ -71,4 +71,96 @@ class Utils {
     public static function validateEmail($email) {
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
+    
+    /**
+     * 清理輸入數據
+     */
+    public static function sanitizeInput($data) {
+        if (is_array($data)) {
+            return array_map([self::class, 'sanitizeInput'], $data);
+        }
+        return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
+    }
+    
+    /**
+     * 生成隨機字符串
+     */
+    public static function generateRandomString($length = 32) {
+        return bin2hex(random_bytes($length / 2));
+    }
+    
+    /**
+     * 檢查是否為AJAX請求
+     */
+    public static function isAjax() {
+        return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+               strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    }
+    
+    /**
+     * 哈希密碼
+     */
+    public static function hashPassword($password) {
+        return password_hash($password, PASSWORD_ARGON2ID);
+    }
+    
+    /**
+     * 驗證密碼
+     */
+    public static function verifyPassword($password, $hash) {
+        return password_verify($password, $hash);
+    }
+    
+    /**
+     * 生成安全的文件名
+     */
+    public static function sanitizeFilename($filename) {
+        return preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
+    }
+    
+    /**
+     * 記錄日誌
+     */
+    public static function log($level, $message, $userId = null, $data = null) {
+        try {
+            $db = Database::getConnection();
+            
+            $stmt = $db->prepare("
+                INSERT INTO system_logs (level, message, user_id, data, created_at) 
+                VALUES (?, ?, ?, ?, NOW())
+            ");
+            
+            // 確保message是字符串
+            $messageStr = is_array($message) || is_object($message) ? json_encode($message, JSON_UNESCAPED_UNICODE) : (string)$message;
+            
+            // 處理data參數
+            $dataJson = null;
+            if ($data !== null) {
+                if (is_array($data) || is_object($data)) {
+                    $dataJson = json_encode($data, JSON_UNESCAPED_UNICODE);
+                } else {
+                    $dataJson = (string)$data;
+                }
+            }
+            $stmt->execute([$level, $messageStr, $userId, $dataJson]);
+        } catch (Exception $e) {
+            // 記錄到文件作為備用
+            $logMessage = is_array($message) ? json_encode($message) : $message;
+            error_log("[" . date('Y-m-d H:i:s') . "] [$level] $logMessage");
+        }
+    }
+    
+    /**
+     * 格式化文件大小
+     */
+    public static function formatFileSize($bytes) {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        
+        $bytes /= (1 << (10 * $pow));
+        
+        return round($bytes, 2) . ' ' . $units[$pow];
+    }
 }

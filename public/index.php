@@ -226,7 +226,13 @@ if (strpos($uri, '/api/') === 0) {
 // 頁面路由
 switch ($uri) {
     case '/':
-        header('Location: /dashboard');
+        // 檢查用戶是否已登錄
+        session_start();
+        if (isset($_SESSION['user_id'])) {
+            header('Location: /dashboard');
+        } else {
+            header('Location: /auth/login');
+        }
         exit;
         
     case '/auth/login':

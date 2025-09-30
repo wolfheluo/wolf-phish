@@ -177,7 +177,7 @@ sudo systemctl enable mysql
 
 ### 首次登入
 
-1. 訪問 `http://your-domain.com`
+1. 訪問 `http://your-domain.com` #localhost
 2. 使用默認管理員帳號登入：
    - 用戶名：`admin`
    - 密碼：`admin123`

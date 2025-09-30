@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__DIR__) . '/config/Database.php';
+require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once dirname(__DIR__) . '/models/EmailTemplate.php';
 require_once dirname(__DIR__) . '/models/Project.php';
 require_once dirname(__DIR__) . '/utils/Utils.php';

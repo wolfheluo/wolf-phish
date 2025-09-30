@@ -196,8 +196,8 @@ class DashboardController extends BaseController {
             $stats = $this->projectModel->getSystemStats();
             
             // 添加用戶統計
-            $stats['total_users'] = $this->userModel->count(['is_active' => 1]);
-            $stats['admin_users'] = $this->userModel->count(['role' => 'admin', 'is_active' => 1]);
+            $stats['total_users'] = $this->userModel->count(['status' => 'active']);
+            $stats['admin_users'] = $this->userModel->count(['role' => 'admin', 'status' => 'active']);
             
             // 郵件模板統計
             $stats['total_templates'] = $this->emailTemplateModel->count(['is_active' => 1]);

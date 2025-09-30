@@ -16,11 +16,11 @@ abstract class BaseController {
      * 載入依賴文件
      */
     protected function loadDependencies() {
-        require_once dirname(__DIR__) . '/config/config.php';
-        require_once dirname(__DIR__) . '/config/database.php';
-        require_once dirname(__DIR__) . '/src/utils/Utils.php';
-        require_once dirname(__DIR__) . '/src/utils/Session.php';
-        require_once dirname(__DIR__) . '/src/models/BaseModel.php';
+        require_once dirname(__DIR__, 2) . '/config/config.php';
+        require_once dirname(__DIR__, 2) . '/config/database.php';
+        require_once dirname(__DIR__) . '/utils/Utils.php';
+        require_once dirname(__DIR__) . '/utils/Session.php';
+        require_once dirname(__DIR__) . '/models/BaseModel.php';
         
         // 啟動會話
         Session::start();
@@ -167,7 +167,8 @@ abstract class BaseController {
      * 記錄日誌
      */
     protected function log($level, $message, $context = []) {
-        Utils::log($level, $message, $context);
+        $userId = Session::getUserId();
+        Utils::log($level, $message, $userId, $context);
     }
     
     /**

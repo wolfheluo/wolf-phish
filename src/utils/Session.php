@@ -124,10 +124,10 @@ class Session {
                 json_encode($_SESSION)
             ]);
         } catch (Exception $e) {
-            Utils::log('ERROR', 'Failed to save session data', ['error' => $e->getMessage()]);
+            Utils::log('ERROR', 'Failed to save session data', null, ['error' => $e->getMessage()]);
         }
         
-        Utils::log('INFO', 'User logged in', ['user_id' => $user['id'], 'username' => $user['username']]);
+        Utils::log('INFO', 'User logged in', $user['id'], ['username' => $user['username']]);
     }
     
     /**

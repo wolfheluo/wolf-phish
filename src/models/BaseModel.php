@@ -156,7 +156,7 @@ abstract class BaseModel {
     /**
      * 隱藏敏感字段
      */
-    private function hideFields($results) {
+    protected function hideFields($results) {
         if (empty($this->hidden) || empty($results)) {
             return $results;
         }

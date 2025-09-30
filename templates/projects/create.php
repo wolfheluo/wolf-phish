@@ -403,6 +403,5 @@ createApp({
 
 <?php
 $content = ob_get_clean();
-$title = '開始演練';
-include 'layout.php';
+include __DIR__ . '/../layout.php';
 ?>

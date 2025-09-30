@@ -396,6 +396,5 @@ createApp({
 
 <?php
 $content = ob_get_clean();
-$title = '演練狀態';
-include 'layout.php';
+include __DIR__ . '/../layout.php';
 ?>

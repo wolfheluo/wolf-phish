@@ -242,7 +242,9 @@ createApp({
         async loadDashboardData() {
             try {
                 this.loading = true;
-                const response = await fetch('/api/dashboard/data');
+                const response = await fetch('/api/dashboard/data', {
+                    credentials: 'same-origin'
+                });
                 const result = await response.json();
                 
                 if (!result.error) {
@@ -264,7 +266,9 @@ createApp({
         <?php if ($user_role === 'admin'): ?>
         async loadHealthStatus() {
             try {
-                const response = await fetch('/api/system/health');
+                const response = await fetch('/api/system/health', {
+                    credentials: 'same-origin'
+                });
                 const result = await response.json();
                 
                 if (!result.error) {

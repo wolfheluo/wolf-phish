@@ -330,6 +330,5 @@ createApp({
 
 <?php
 $content = ob_get_clean();
-$title = '範本管理';
-include 'layout.php';
+include __DIR__ . '/../layout.php';
 ?>

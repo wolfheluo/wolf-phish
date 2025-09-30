@@ -211,9 +211,26 @@ if (strpos($uri, '/api/') === 0) {
                 $controller->healthCheck();
                 break;
                 
+            case 'projects':
+                $controller = new DashboardController();
+                $controller->getProjects();
+                break;
+                
             default:
-                http_response_code(404);
-                echo json_encode(['error' => 'API endpoint not found']);
+                // 處理動態路由 (如 /api/projects/{id}, /api/analytics/{id})
+                if (preg_match('/^projects\/(\d+)$/', $apiPath, $matches)) {
+                    $controller = new DashboardController();
+                    $controller->projectDetails($matches[1]);
+                } elseif (preg_match('/^analytics\/(\d+)$/', $apiPath, $matches)) {
+                    $controller = new DashboardController();
+                    $controller->getProjectAnalytics($matches[1]);
+                } elseif (preg_match('/^projects\/(\d+)\/targets$/', $apiPath, $matches)) {
+                    $controller = new DashboardController();
+                    $controller->getProjectTargets($matches[1]);
+                } else {
+                    http_response_code(404);
+                    echo json_encode(['error' => 'API endpoint not found']);
+                }
                 break;
         }
     } catch (Exception $e) {

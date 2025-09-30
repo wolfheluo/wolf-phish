@@ -291,7 +291,9 @@ createApp({
     methods: {
         async loadProjects() {
             try {
-                const response = await fetch('/api/projects');
+                const response = await fetch('/api/projects', {
+                    credentials: 'same-origin'
+                });
                 if (response.ok) {
                     this.projects = await response.json();
                 }
@@ -305,19 +307,25 @@ createApp({
             
             try {
                 // 載入專案詳情
-                const projectResponse = await fetch(`/api/projects/${this.selectedProjectId}`);
+                const projectResponse = await fetch(`/api/projects/${this.selectedProjectId}`, {
+                    credentials: 'same-origin'
+                });
                 if (projectResponse.ok) {
                     this.selectedProject = await projectResponse.json();
                 }
                 
                 // 載入統計數據
-                const analyticsResponse = await fetch(`/api/analytics/${this.selectedProjectId}`);
+                const analyticsResponse = await fetch(`/api/analytics/${this.selectedProjectId}`, {
+                    credentials: 'same-origin'
+                });
                 if (analyticsResponse.ok) {
                     this.analytics = await analyticsResponse.json();
                 }
                 
                 // 載入目標數據
-                const targetsResponse = await fetch(`/api/projects/${this.selectedProjectId}/targets`);
+                const targetsResponse = await fetch(`/api/projects/${this.selectedProjectId}/targets`, {
+                    credentials: 'same-origin'
+                });
                 if (targetsResponse.ok) {
                     this.targets = await targetsResponse.json();
                 }
@@ -411,6 +419,5 @@ createApp({
 
 <?php
 $content = ob_get_clean();
-$title = '結果查詢';
-include 'layout.php';
+include __DIR__ . '/../layout.php';
 ?>

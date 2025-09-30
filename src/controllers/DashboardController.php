@@ -419,4 +419,128 @@ class DashboardController extends BaseController {
         
         return round($bytes, $precision) . ' ' . $units[$i];
     }
+    
+    /**
+     * 獲取所有項目列表 (API)
+     */
+    public function getProjects() {
+        try {
+            $this->requireAuth();
+            
+            $userId = Session::getUserId();
+            $userRole = Session::getUserRole();
+            
+            if ($userRole === 'admin') {
+                // 管理員可以看到所有項目
+                $projects = $this->projectModel->all([], 'created_at DESC');
+            } else {
+                // 普通用戶只能看到自己的項目
+                $projects = $this->projectModel->all(['created_by' => $userId], 'created_at DESC');
+            }
+            
+            $this->success($projects);
+            
+        } catch (Exception $e) {
+            $this->log('ERROR', 'Get projects error', ['error' => $e->getMessage()]);
+            $this->error($e->getMessage());
+        }
+    }
+    
+    /**
+     * 獲取項目統計分析 (API)
+     */
+    public function getProjectAnalytics($projectId) {
+        try {
+            $this->requireAuth();
+            
+            $userId = Session::getUserId();
+            $userRole = Session::getUserRole();
+            
+            // 檢查權限
+            $project = $this->projectModel->find($projectId);
+            if (!$project || ($userRole !== 'admin' && $project['created_by'] != $userId)) {
+                $this->error('項目不存在或無權限訪問', 403);
+            }
+            
+            // 獲取統計數據
+            $analytics = [
+                'sent_count' => 0,
+                'opened_count' => 0,
+                'clicked_count' => 0,
+                'submitted_count' => 0
+            ];
+            
+            // 從數據庫獲取實際統計
+            $db = Database::getConnection();
+            
+            // 發送郵件數量
+            $stmt = $db->prepare("SELECT COUNT(*) as count FROM sent_emails WHERE project_id = ?");
+            $stmt->execute([$projectId]);
+            $analytics['sent_count'] = $stmt->fetch()['count'];
+            
+            // 郵件開啟數量 (追蹤像素)
+            $stmt = $db->prepare("SELECT COUNT(DISTINCT user_id) as count FROM track_pixel_logs WHERE project_id = ?");
+            $stmt->execute([$projectId]);
+            $analytics['opened_count'] = $stmt->fetch()['count'];
+            
+            // 連結點擊數量
+            $stmt = $db->prepare("SELECT COUNT(DISTINCT user_id) as count FROM track_url_logs WHERE project_id = ?");
+            $stmt->execute([$projectId]);
+            $analytics['clicked_count'] = $stmt->fetch()['count'];
+            
+            // 提交數據數量
+            $stmt = $db->prepare("SELECT COUNT(DISTINCT user_id) as count FROM track_credentials WHERE project_id = ?");
+            $stmt->execute([$projectId]);
+            $analytics['submitted_count'] = $stmt->fetch()['count'];
+            
+            $this->success($analytics);
+            
+        } catch (Exception $e) {
+            $this->log('ERROR', 'Get project analytics error', ['error' => $e->getMessage()]);
+            $this->error($e->getMessage());
+        }
+    }
+    
+    /**
+     * 獲取項目目標用戶列表 (API)
+     */
+    public function getProjectTargets($projectId) {
+        try {
+            $this->requireAuth();
+            
+            $userId = Session::getUserId();
+            $userRole = Session::getUserRole();
+            
+            // 檢查權限
+            $project = $this->projectModel->find($projectId);
+            if (!$project || ($userRole !== 'admin' && $project['created_by'] != $userId)) {
+                $this->error('項目不存在或無權限訪問', 403);
+            }
+            
+            // 獲取目標用戶
+            $db = Database::getConnection();
+            $stmt = $db->prepare("
+                SELECT te.*, 
+                       se.sent_at,
+                       tpl.opened_at,
+                       tul.clicked_at,
+                       tc.submitted_at
+                FROM target_emails te
+                LEFT JOIN sent_emails se ON te.id = se.target_id
+                LEFT JOIN track_pixel_logs tpl ON te.id = tpl.user_id AND tpl.project_id = ?
+                LEFT JOIN track_url_logs tul ON te.id = tul.user_id AND tul.project_id = ?
+                LEFT JOIN track_credentials tc ON te.id = tc.user_id AND tc.project_id = ?
+                WHERE te.project_id = ?
+                ORDER BY te.id ASC
+            ");
+            $stmt->execute([$projectId, $projectId, $projectId, $projectId]);
+            $targets = $stmt->fetchAll();
+            
+            $this->success($targets);
+            
+        } catch (Exception $e) {
+            $this->log('ERROR', 'Get project targets error', ['error' => $e->getMessage()]);
+            $this->error($e->getMessage());
+        }
+    }
 }

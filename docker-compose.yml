@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: cretech-phish-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - .:/var/www/cretech-phish
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - php
+    networks:
+      - cretech-network
+    restart: unless-stopped
+
+  # PHP-FPM
+  php:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: cretech-phish-php
+    volumes:
+      - .:/var/www/cretech-phish
+    environment:
+      - DB_HOST=mysql
+      - DB_NAME=cretech_phish
+      - DB_USER=phish_user
+      - DB_PASS=phish_password_2023
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - cretech-network
+    restart: unless-stopped
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: cretech-phish-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123
+      - MYSQL_DATABASE=cretech_phish
+      - MYSQL_USER=phish_user
+      - MYSQL_PASSWORD=phish_password_2023
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - cretech-network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:alpine
+    container_name: cretech-phish-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - cretech-network
+    restart: unless-stopped
+
+  # MailHog (開發環境郵件測試)
+  mailhog:
+    image: mailhog/mailhog
+    container_name: cretech-phish-mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - cretech-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  cretech-network:
+    driver: bridge

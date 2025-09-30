@@ -47,6 +47,122 @@ class DashboardController extends BaseController {
     }
     
     /**
+     * 模板管理頁面
+     */
+    public function templates() {
+        try {
+            $this->requireAuth();
+            
+            $this->render('templates/index', [
+                'title' => '範本管理'
+            ]);
+            
+        } catch (Exception $e) {
+            $this->log('ERROR', 'Templates page error', ['error' => $e->getMessage()]);
+            $this->error($e->getMessage());
+        }
+    }
+    
+    /**
+     * 創建專案頁面
+     */
+    public function createProjectPage() {
+        try {
+            $this->requireAuth();
+            
+            $this->render('projects/create', [
+                'title' => '開始演練'
+            ]);
+            
+        } catch (Exception $e) {
+            $this->log('ERROR', 'Create project page error', ['error' => $e->getMessage()]);
+            $this->error($e->getMessage());
+        }
+    }
+    
+    /**
+     * 專案狀態頁面
+     */
+    public function projectStatus() {
+        try {
+            $this->requireAuth();
+            
+            $this->render('projects/status', [
+                'title' => '演練狀態'
+            ]);
+            
+        } catch (Exception $e) {
+            $this->log('ERROR', 'Project status page error', ['error' => $e->getMessage()]);
+            $this->error($e->getMessage());
+        }
+    }
+    
+    /**
+     * 報告頁面
+     */
+    public function reports() {
+        try {
+            $this->requireAuth();
+            
+            $this->render('reports/index', [
+                'title' => '結果查詢'
+            ]);
+            
+        } catch (Exception $e) {
+            $this->log('ERROR', 'Reports page error', ['error' => $e->getMessage()]);
+            $this->error($e->getMessage());
+        }
+    }
+    
+    /**
+     * 報告詳情頁面
+     */
+    public function reportDetails($projectId) {
+        try {
+            $this->requireAuth();
+            
+            $project = $this->projectModel->find($projectId);
+            if (!$project) {
+                $this->redirect('/reports');
+                return;
+            }
+            
+            $this->render('reports/details', [
+                'title' => '報告詳情 - ' . $project['project_name'],
+                'project' => $project
+            ]);
+            
+        } catch (Exception $e) {
+            $this->log('ERROR', 'Report details error', ['error' => $e->getMessage()]);
+            $this->error($e->getMessage());
+        }
+    }
+    
+    /**
+     * 專案詳情頁面
+     */
+    public function projectDetails($projectId) {
+        try {
+            $this->requireAuth();
+            
+            $project = $this->projectModel->find($projectId);
+            if (!$project) {
+                $this->redirect('/projects');
+                return;
+            }
+            
+            $this->render('projects/details', [
+                'title' => '專案詳情 - ' . $project['project_name'],
+                'project' => $project
+            ]);
+            
+        } catch (Exception $e) {
+            $this->log('ERROR', 'Project details error', ['error' => $e->getMessage()]);
+            $this->error($e->getMessage());
+        }
+    }
+    
+    /**
      * API: 獲取儀表板數據
      */
     public function getDashboardData() {

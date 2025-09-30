@@ -257,10 +257,46 @@ switch ($uri) {
         $controller->index();
         break;
         
+    case '/templates':
+        $controller = new DashboardController();
+        $controller->templates();
+        break;
+        
+    case '/projects/create':
+        $controller = new DashboardController();
+        $controller->createProjectPage();
+        break;
+        
+    case '/projects':
+    case '/projects/status':
+        $controller = new DashboardController();
+        $controller->projectStatus();
+        break;
+        
+    case '/reports':
+        $controller = new DashboardController();
+        $controller->reports();
+        break;
+        
     default:
+        // 檢查是否為報告詳情頁面 /reports/{id}
+        if (preg_match('/^\/reports\/(\d+)$/', $uri, $matches)) {
+            $controller = new DashboardController();
+            $controller->reportDetails($matches[1]);
+            break;
+        }
+        
+        // 檢查是否為專案詳情頁面 /projects/{id}
+        if (preg_match('/^\/projects\/(\d+)$/', $uri, $matches)) {
+            $controller = new DashboardController();
+            $controller->projectDetails($matches[1]);
+            break;
+        }
+        
         http_response_code(404);
-        echo "<h1>404 - Page Not Found</h1>";
-        echo "<p>The requested page could not be found.</p>";
+        echo "<h1>404 - 頁面未找到</h1>";
+        echo "<p>請求的頁面不存在。</p>";
+        echo "<a href='/dashboard'>返回儀表板</a>";
         break;
 }
 

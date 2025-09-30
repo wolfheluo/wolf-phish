@@ -1,6 +1,11 @@
+# Cretech-PHISH Docker 映像檔
+# 注意：此 Dockerfile 主要用於開發和測試環境
+# 生產環境建議直接在 aaPanel 中部署，請參考 install.sh 中的 aaPanel 配置說明
+
 FROM php:8.1-fpm
 
-# 安裝系統依賴
+# 安裝基本系統依賴（不包含 nginx, supervisor, postfix）
+# 這些服務在 aaPanel 環境中由面板管理
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -10,10 +15,7 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
-    nginx \
-    supervisor \
     cron \
-    postfix \
     && rm -rf /var/lib/apt/lists/*
 
 # 安裝 PHP 擴展
@@ -44,12 +46,9 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/uploads \
     && chmod -R 775 /var/www/html/templates
 
-# 配置 Nginx
-COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY docker/nginx/sites/default.conf /etc/nginx/sites-available/default
-
-# 配置 Supervisor
-COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# 注意：Nginx 和 Supervisor 配置已移除
+# 在 aaPanel 環境中，這些服務由面板統一管理
+# 請參考 install.sh 中的詳細配置說明
 
 # 配置 PHP
 RUN echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/uploads.ini \
@@ -62,19 +61,18 @@ RUN mkdir -p /var/log/supervisor \
     && mkdir -p /var/log/nginx \
     && mkdir -p /var/run/php
 
-# 配置 Postfix 為僅發送模式
-RUN echo "inet_interfaces = loopback-only" >> /etc/postfix/main.cf
+# 郵件服務配置已移除
+# 在 aaPanel 環境中請根據需要配置 Postfix 或使用 SMTP 服務
 
-# 創建啟動腳本
+# 創建簡化的啟動腳本
 COPY docker/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-# 暴露端口
-EXPOSE 80 443
+# 僅暴露 PHP-FPM 端口（在 aaPanel 環境中 Nginx 由面板管理）
+EXPOSE 9000
 
-# 健康檢查
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/api/auth/check || exit 1
+# 注意：此 Docker 映像主要用於應用程式運行
+# Web 服務器和其他服務請在 aaPanel 中配置
 
-# 啟動服務
-CMD ["/usr/local/bin/start.sh"]
+# 啟動 PHP-FPM
+CMD ["php-fpm"]

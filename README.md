@@ -10,6 +10,23 @@
 
 Cretech-PHISH 是一個專業級的社交工程安全測試平台，用於幫助組織評估員工的安全意識並提供針對性的安全培訓。該系統提供完整的釣魚郵件測試、追蹤分析和安全教育功能。
 
+## 🚀 快速開始
+
+### 🎯 推薦：aaPanel 生產環境部署
+```bash
+# 確保已安裝 aaPanel 並配置 LNMP 環境
+sudo bash install.sh
+```
+詳細配置說明請參考：[DEPLOYMENT.md](DEPLOYMENT.md)
+
+### 🛠️ 備選：Docker 開發環境
+```bash
+# 本地開發和測試
+docker-compose up -d
+```
+
+> **選擇建議**：生產環境推薦使用 aaPanel 部署，具有更好的穩定性和管理性；開發環境可使用 Docker 快速搭建。
+
 ### ✨ 核心功能
 
 #### 🎯 釣魚測試管理

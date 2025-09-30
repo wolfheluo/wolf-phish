@@ -167,7 +167,7 @@
                         <div class="mb-3">
                             <label class="form-label">郵件主旨 *</label>
                             <input type="text" class="form-control" v-model="emailTemplateForm.subject" required>
-                            <div class="form-text">可使用變數: {{name}}, {{email}}, {{department}}</div>
+                            <div class="form-text">可使用變數: &#123;&#123;name&#125;&#125;, &#123;&#123;email&#125;&#125;, &#123;&#123;department&#125;&#125;</div>
                         </div>
                         
                         <div class="mb-3">
@@ -178,7 +178,7 @@
                                       placeholder="輸入 HTML 郵件內容..."
                                       required></textarea>
                             <div class="form-text">
-                                可用變數: {{name}}, {{email}}, {{department}}, {{tracking_pixel}}, {{phish_url}}, {{download_url}}
+                                可用變數: &#123;&#123;name&#125;&#125;, &#123;&#123;email&#125;&#125;, &#123;&#123;department&#125;&#125;, &#123;&#123;tracking_pixel&#125;&#125;, &#123;&#123;phish_url&#125;&#125;, &#123;&#123;download_url&#125;&#125;
                             </div>
                         </div>
                         
@@ -218,7 +218,7 @@
                                       placeholder="輸入 HTML 頁面內容..."
                                       required></textarea>
                             <div class="form-text">
-                                可用變數: {{project_id}}, {{email}}, {{target_username}}
+                                可用變數: &#123;&#123;project_id&#125;&#125;, &#123;&#123;email&#125;&#125;, &#123;&#123;target_username&#125;&#125;
                             </div>
                         </div>
                         
@@ -272,44 +272,70 @@ window.addEventListener('load', function() {
     
     computed: {
         filteredEmailTemplates() {
+            if (!Array.isArray(this.emailTemplates)) {
+                return [];
+            }
+            const query = this.searchQuery.toLowerCase();
             return this.emailTemplates.filter(template => 
-                template.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                template.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+                (template.name && template.name.toLowerCase().includes(query)) ||
+                (template.description && template.description.toLowerCase().includes(query))
             );
         },
         
         filteredPhishingSites() {
+            if (!Array.isArray(this.phishingSites)) {
+                return [];
+            }
+            const query = this.searchQuery.toLowerCase();
             return this.phishingSites.filter(site => 
-                site.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                site.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+                (site.name && site.name.toLowerCase().includes(query)) ||
+                (site.description && site.description.toLowerCase().includes(query))
             );
         }
     },
     
     mounted() {
+        console.log('範本管理應用已掛載');
         this.loadTemplates();
     },
     
     methods: {
         async loadTemplates() {
             try {
+                console.log('開始載入範本...');
+                
                 // 載入郵件範本
                 const emailResponse = await fetch('/api/templates?type=email', {
                     credentials: 'same-origin'
                 });
-                if (emailResponse.ok) {
-                    this.emailTemplates = await emailResponse.json();
+                const emailResult = await emailResponse.json();
+                console.log('郵件範本響應:', emailResult);
+                
+                if (!emailResult.error && emailResult.data) {
+                    this.emailTemplates = emailResult.data;
+                } else {
+                    console.warn('郵件範本載入失敗或無數據:', emailResult);
+                    this.emailTemplates = [];
                 }
                 
                 // 載入釣魚網站範本
                 const siteResponse = await fetch('/api/templates?type=phishing', {
                     credentials: 'same-origin'
                 });
-                if (siteResponse.ok) {
-                    this.phishingSites = await siteResponse.json();
+                const siteResult = await siteResponse.json();
+                console.log('釣魚網站範本響應:', siteResult);
+                
+                if (!siteResult.error && siteResult.data) {
+                    this.phishingSites = siteResult.data;
+                } else {
+                    console.warn('釣魚網站範本載入失敗或無數據:', siteResult);
+                    this.phishingSites = [];
                 }
             } catch (error) {
-                console.error('載入範本失敗:', error);
+                console.error('載入範本時發生錯誤:', error);
+                this.emailTemplates = [];
+                this.phishingSites = [];
+                alert('載入範本失敗: ' + error.message);
             }
         },
         
